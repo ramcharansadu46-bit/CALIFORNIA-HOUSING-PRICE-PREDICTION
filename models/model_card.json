@@ -1,0 +1,44 @@
+{
+  "model": "XGBoost",
+  "hyperparameters": {
+    "subsample": 0.9,
+    "n_estimators": 800,
+    "min_child_weight": 1,
+    "max_depth": 8,
+    "learning_rate": 0.03,
+    "colsample_bytree": 0.7
+  },
+  "imputer": "knn",
+  "feature_set": "F3 +ratios+spatial",
+  "trained_on_rows": 16512,
+  "test_metrics": {
+    "RMSE": 40591.456129191356,
+    "MAE": 26216.96308177386,
+    "R2": 0.8735788131132227,
+    "MedAPE_%": 9.44025656134468,
+    "Within20%": 78.53682170542635
+  },
+  "target": "median_house_value",
+  "input_columns": [
+    "longitude",
+    "latitude",
+    "housing_median_age",
+    "total_rooms",
+    "total_bedrooms",
+    "population",
+    "households",
+    "median_income",
+    "ocean_proximity"
+  ],
+  "environment": {
+    "python": "3.12.13",
+    "pandas": "3.0.2",
+    "numpy": "2.4.4",
+    "scikit-learn": "1.8.0",
+    "xgboost": "3.4.1",
+    "random_state": 42,
+    "quick_mode": false
+  },
+  "load_example": "import joblib, pandas as pd; m = joblib.load('models/best_model.joblib'); m.predict(pd.read_csv('data/processed/test.csv').drop(columns='median_house_value').head())",
+  "note": "Pipeline pickles classes from src/ -> run from the project root so `src` is importable."
+}

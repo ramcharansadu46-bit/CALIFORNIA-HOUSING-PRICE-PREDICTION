@@ -1,0 +1,106 @@
+# ============================================================
+# Python / Virtual Environments
+# ============================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+pip-wheel-metadata/
+*.spec
+
+# ============================================================
+# Jupyter Notebook
+# ============================================================
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+*.nbconvert.ipynb
+profile_default/
+ipython_config.py
+
+# ============================================================
+# Large binary model files — regenerate with train_best_model.py
+# ============================================================
+models/best_model.joblib
+
+# ============================================================
+# OS / Editor / IDE
+# ============================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# ============================================================
+# Environment / Secrets
+# ============================================================
+.env
+.env.*
+*.env
+secrets.json
+config.local.*
+
+# ============================================================
+# Report build artefacts
+# ============================================================
+report/_tmp/
+report/*.aux
+report/*.log
+report/*.out
+*.bak
+
+# ============================================================
+# Personal study material — keep out of a public repository
+# ============================================================
+docs/VIVA_PREPARATION_GUIDE.docx
+
+# ============================================================
+# Test / Coverage artefacts
+# ============================================================
+.coverage
+.pytest_cache/
+htmlcov/
+*.cover
+*.py,cover
+coverage.xml
+nosetests.xml
+
+# ============================================================
+# Distribution / Packaging
+# ============================================================
+*.manifest
+*.whl
+*.tar.gz
+*.zip
+
+# ============================================================
+# Miscellaneous scratch files
+# ============================================================
+scratch/
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig

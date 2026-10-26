@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>California Housing Predictive Analysis | LPU CA2 Machine Learning Benchmark</title>
+  <meta name="description" content="End-to-end predictive analysis regression dashboard for California Census-District House Values featuring tuned XGBoost, HistGB, Random Forest, and 20 publication figures.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <!-- Ambient background glow -->
+  <div class="glow-orb glow-orb-1"></div>
+  <div class="glow-orb glow-orb-2"></div>
+
+  <!-- Header / Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-badge">CA2</div>
+        <div class="brand-text">
+          <h1>California Housing Predictive Analysis</h1>
+          <p class="brand-subtitle">End-to-End ML Regression Benchmark • LPU Academic Project</p>
+        </div>
+      </div>
+      <nav class="nav-links">
+        <a href="#predictor" class="nav-link active">Live Predictor</a>
+        <a href="#comparison" class="nav-link">Model Benchmark</a>
+        <a href="#objectives" class="nav-link">Research Objectives</a>
+        <a href="#gallery" class="nav-link">Figure Gallery</a>
+        <a href="#downloads" class="nav-link">Artifacts & Viva</a>
+      </nav>
+      <div class="header-status">
+        <span class="status-indicator"></span>
+        <span class="status-label" id="modelStatus">XGBoost Active</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Hero / Metrics Overview -->
+    <section class="hero-section">
+      <div class="hero-header">
+        <div class="tag-badge">RESEARCH BENCHMARK & PRODUCTION PIPELINE</div>
+        <h2 class="hero-title">Predicting California District House Values</h2>
+        <p class="hero-desc">
+          Rigorous predictive modeling over 20,640 census blocks with leakage-safe KNN imputation, geographic urban hub distance vectors, ratio feature engineering, and hyperparameter-tuned non-linear regressors.
+        </p>
+      </div>
+
+      <!-- KPI Grid -->
+      <div class="kpi-grid">
+        <div class="kpi-card highlight-cyan">
+          <div class="kpi-icon">🏆</div>
+          <div class="kpi-content">
+            <span class="kpi-label">Best Test RMSE</span>
+            <span class="kpi-value" id="kpiRmse">$40,980</span>
+            <span class="kpi-subtext">XGBoost (vs Dummy Baseline $114,165)</span>
+          </div>
+          <div class="kpi-delta">-64.1% Error</div>
+        </div>
+
+        <div class="kpi-card highlight-purple">
+          <div class="kpi-icon">📈</div>
+          <div class="kpi-content">
+            <span class="kpi-label">Test R² Score</span>
+            <span class="kpi-value" id="kpiR2">0.871</span>
+            <span class="kpi-subtext">HistGB: 0.858 | RF: 0.854 | k-NN: 0.778</span>
+          </div>
+          <div class="kpi-delta">87.1% Var. Explained</div>
+        </div>
+
+        <div class="kpi-card highlight-emerald">
+          <div class="kpi-icon">🎯</div>
+          <div class="kpi-content">
+            <span class="kpi-label">Within 20% Accuracy</span>
+            <span class="kpi-value" id="kpiWithin20">78.4%</span>
+            <span class="kpi-subtext">Median Absolute % Error: 9.6%</span>
+          </div>
+          <div class="kpi-delta">High Precision</div>
+        </div>
+
+        <div class="kpi-card highlight-amber">
+          <div class="kpi-icon">📍</div>
+          <div class="kpi-content">
+            <span class="kpi-label">Spatial Autocorrelation</span>
+            <span class="kpi-value" id="kpiMoran">0.79</span>
+            <span class="kpi-subtext">Moran's I (Distances to 5 California Hubs)</span>
+          </div>
+          <div class="kpi-delta">Strong Clustering</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Live Predictor Section -->
+    <section id="predictor" class="section-container">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <div class="section-tag">INTERACTIVE INFERENCE ENGINE</div>
+          <h3 class="section-title">District Valuation & House Value Predictor</h3>
+          <p class="section-desc">Adjust census district parameters or click preset districts to evaluate predictions via the production XGBoost pipeline.</p>
+        </div>
+        <div class="section-actions">
+          <button id="btnRandomSample" class="btn btn-secondary">
+            <span class="btn-icon">🎲</span> Load Random Test Sample
+          </button>
+          <button id="btnResetForm" class="btn btn-ghost">Reset Defaults</button>
+        </div>
+      </div>
+
+      <!-- Preset Pills -->
+      <div class="presets-bar">
+        <span class="presets-label">District Presets:</span>
+        <button class="preset-pill active" data-preset="sf_bay">San Francisco Bay</button>
+        <button class="preset-pill" data-preset="silicon_valley">Silicon Valley (San Jose)</button>
+        <button class="preset-pill" data-preset="la_coastal">Los Angeles Coastal</button>
+        <button class="preset-pill" data-preset="san_diego">San Diego Suburban</button>
+        <button class="preset-pill" data-preset="inland_valley">Inland Central Valley</button>
+        <button class="preset-pill" data-preset="sacramento">Sacramento Capital</button>
+      </div>
+
+      <div class="predictor-grid">
+        <!-- Input Form -->
+        <div class="card predictor-form-card">
+          <div class="card-header">
+            <h4>Census District Parameters</h4>
+            <span class="badge badge-subtle">9 Base Features</span>
+          </div>
+
+          <form id="predictionForm" class="form-body">
+            <!-- Row: Income & Age -->
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <div class="label-row">
+                  <label for="inpMedianIncome">Median Income</label>
+                  <span class="value-display" id="dispMedianIncome">8.28 (~$82,800/yr)</span>
+                </div>
+                <input type="range" id="inpMedianIncome" min="0.5" max="15.0" step="0.1" value="8.28" class="custom-range">
+                <div class="range-limits"><span>$5k</span><span>State Med: $3.53</span><span>$150k</span></div>
+              </div>
+
+              <div class="form-group flex-1">
+                <div class="label-row">
+                  <label for="inpHousingAge">Housing Median Age</label>
+                  <span class="value-display" id="dispHousingAge">29 yrs</span>
+                </div>
+                <input type="range" id="inpHousingAge" min="1" max="52" step="1" value="29" class="custom-range">
+                <div class="range-limits"><span>1 yr</span><span>Med: 29 yrs</span><span>52 yrs (capped)</span></div>
+              </div>
+            </div>
+
+            <!-- Row: Coordinates -->
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <div class="label-row">
+                  <label for="inpLongitude">Longitude (°W)</label>
+                  <span class="value-display" id="dispLongitude">-118.39°</span>
+                </div>
+                <input type="number" id="inpLongitude" min="-124.35" max="-114.31" step="0.01" value="-118.39" class="custom-input">
+              </div>
+
+              <div class="form-group flex-1">
+                <div class="label-row">
+                  <label for="inpLatitude">Latitude (°N)</label>
+                  <span class="value-display" id="dispLatitude">34.12°</span>
+                </div>
+                <input type="number" id="inpLatitude" min="32.54" max="41.95" step="0.01" value="34.12" class="custom-input">
+              </div>
+            </div>
+
+            <!-- Row: Rooms & Bedrooms -->
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <div class="label-row">
+                  <label for="inpTotalRooms">Total Rooms in District</label>
+                  <span class="value-display" id="dispTotalRooms">6,447</span>
+                </div>
+                <input type="range" id="inpTotalRooms" min="200" max="15000" step="50" value="6447" class="custom-range">
+              </div>
+
+              <div class="form-group flex-1">
+                <div class="label-row">
+                  <label for="inpTotalBedrooms">Total Bedrooms</label>
+                  <span class="value-display" id="dispTotalBedrooms">1,012</span>
+                </div>
+                <input type="range" id="inpTotalBedrooms" min="50" max="4000" step="10" value="1012" class="custom-range">
+              </div>
+            </div>
+
+            <!-- Row: Population & Households -->
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <div class="label-row">
+                  <label for="inpPopulation">District Population</label>
+                  <span class="value-display" id="dispPopulation">2,184</span>
+                </div>
+                <input type="range" id="inpPopulation" min="100" max="10000" step="20" value="2184" class="custom-range">
+              </div>
+
+              <div class="form-group flex-1">
+                <div class="label-row">
+                  <label for="inpHouseholds">Total Households</label>
+                  <span class="value-display" id="dispHouseholds">960</span>
+                </div>
+                <input type="range" id="inpHouseholds" min="50" max="4000" step="10" value="960" class="custom-range">
+              </div>
+            </div>
+
+            <!-- Ocean Proximity Selector -->
+            <div class="form-group">
+              <label class="field-title">Ocean Proximity Category</label>
+              <div class="radio-pill-group">
+                <label class="radio-pill">
+                  <input type="radio" name="ocean_proximity" value="<1H OCEAN" checked>
+                  <span>&lt;1H OCEAN</span>
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="ocean_proximity" value="INLAND">
+                  <span>INLAND</span>
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="ocean_proximity" value="NEAR OCEAN">
+                  <span>NEAR OCEAN</span>
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="ocean_proximity" value="NEAR BAY">
+                  <span>NEAR BAY</span>
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="ocean_proximity" value="ISLAND">
+                  <span>ISLAND</span>
+                </label>
+              </div>
+            </div>
+
+            <button type="button" id="btnCalculate" class="btn btn-primary btn-block">
+              <span class="btn-icon">⚡</span> Run Model Prediction
+            </button>
+          </form>
+        </div>
+
+        <!-- Valuation Results Card -->
+        <div class="card result-card">
+          <div class="card-header">
+            <h4>Predicted District Valuation</h4>
+            <span class="badge badge-cyan" id="badgeSampleState">Live Inference</span>
+          </div>
+
+          <div class="result-body">
+            <div class="valuation-highlight">
+              <span class="val-caption">ESTIMATED MEDIAN HOUSE VALUE</span>
+              <div class="val-amount" id="resultPrice">$492,341</div>
+              <div class="val-ci" id="resultCi">
+                <span>95% Expected Band: </span>
+                <strong id="resultCiRange">$466,125 – $500,001</strong>
+              </div>
+            </div>
+
+            <!-- Ground Truth Comparison (shown when sample loaded) -->
+            <div id="groundTruthBox" class="ground-truth-box hidden">
+              <div class="gt-item">
+                <span class="gt-label">Actual Census Value</span>
+                <span class="gt-val" id="gtActual">$500,001</span>
+              </div>
+              <div class="gt-item">
+                <span class="gt-label">Prediction Residual</span>
+                <span class="gt-val highlight-green" id="gtDiff">-$7,660 (-1.5%)</span>
+              </div>
+            </div>
+
+            <!-- Feature Engineering Diagnostic Breakdown -->
+            <div class="derived-features-box">
+              <h5 class="subhead">Engineered Feature Diagnostics</h5>
+              <div class="features-pill-grid">
+                <div class="feature-pill">
+                  <span class="feat-name">Rooms / Household</span>
+                  <span class="feat-val" id="featRoomsPerHh">6.72</span>
+                </div>
+                <div class="feature-pill">
+                  <span class="feat-name">Bedrooms Ratio</span>
+                  <span class="feat-val" id="featBedroomsRatio">0.157</span>
+                </div>
+                <div class="feature-pill">
+                  <span class="feat-name">People / Household</span>
+                  <span class="feat-val" id="featPopPerHh">2.28</span>
+                </div>
+                <div class="feature-pill">
+                  <span class="feat-name">Nearest Urban Hub</span>
+                  <span class="feat-val" id="featHub">LosAngeles (7.8 km)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Model Info Footer -->
+            <div class="model-meta-box">
+              <div class="meta-row">
+                <span class="meta-label">Pipeline Architecture:</span>
+                <span class="meta-val">KNN Imputer (k=5) + F3 Features + Log1p/Scale/OHE + XGBoost Regressor</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Tuned Hyperparameters:</span>
+                <span class="meta-val">800 Trees, Depth 8, LR 0.03, Subsample 0.9, TreeMethod=hist</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Model Comparison Matrix Section -->
+    <section id="comparison" class="section-container">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <div class="section-tag">BENCHMARK EVALUATION</div>
+          <h3 class="section-title">Seven-Model Comparison & Statistical Significance</h3>
+          <p class="section-desc">Models evaluated on the 80/20 income-stratified test set (4,128 districts), validated via 5-fold CV, Nadeau-Bengio corrected t-test, and 1,000-sample paired bootstrap.</p>
+        </div>
+      </div>
+
+      <div class="card table-card">
+        <div class="table-responsive">
+          <table class="benchmark-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>5-Fold CV RMSE</th>
+                <th>Test RMSE ($)</th>
+                <th>Test MAE ($)</th>
+                <th>Test R²</th>
+                <th>Within 20%</th>
+                <th>Inference / 4k</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="benchmarkTableBody">
+              <tr class="winner-row">
+                <td><strong>XGBoost (F3 Ratios + Spatial)</strong></td>
+                <td>$42,926 ± 1,064</td>
+                <td><strong class="highlight-cyan">$40,980</strong></td>
+                <td>$26,522</td>
+                <td><strong>0.871</strong></td>
+                <td>78.4%</td>
+                <td>0.11s</td>
+                <td><span class="badge badge-winner">🏆 Champion</span></td>
+              </tr>
+              <tr>
+                <td>HistGradientBoosting</td>
+                <td>$44,996 ± 1,097</td>
+                <td>$43,024</td>
+                <td>$28,095</td>
+                <td>0.858</td>
+                <td>76.2%</td>
+                <td>0.09s</td>
+                <td><span class="badge badge-subtle">Runner-up</span></td>
+              </tr>
+              <tr>
+                <td>Random Forest</td>
+                <td>$45,488 ± 996</td>
+                <td>$43,613</td>
+                <td>$28,205</td>
+                <td>0.854</td>
+                <td>75.9%</td>
+                <td>0.25s</td>
+                <td><span class="badge badge-subtle">Competitive</span></td>
+              </tr>
+              <tr>
+                <td>k-Nearest Neighbors (k-NN)</td>
+                <td>$56,184 ± 1,743</td>
+                <td>$53,768</td>
+                <td>$36,199</td>
+                <td>0.778</td>
+                <td>64.9%</td>
+                <td>0.29s</td>
+                <td><span class="badge badge-subtle">Non-parametric</span></td>
+              </tr>
+              <tr>
+                <td>Ridge Regression (Standard)</td>
+                <td>$63,389 ± 1,063</td>
+                <td>$62,098</td>
+                <td>$45,173</td>
+                <td>0.704</td>
+                <td>51.8%</td>
+                <td>0.03s</td>
+                <td><span class="badge badge-subtle">Linear</span></td>
+              </tr>
+              <tr>
+                <td>Ridge (log-target)</td>
+                <td>$74,289 ± 3,659</td>
+                <td>$71,014</td>
+                <td>$43,775</td>
+                <td>0.613</td>
+                <td>58.9%</td>
+                <td>0.04s</td>
+                <td><span class="badge badge-subtle">Log Scale</span></td>
+              </tr>
+              <tr class="baseline-row">
+                <td>Dummy Regressor (Mean baseline)</td>
+                <td>$115,699 ± 1,194</td>
+                <td>$114,165</td>
+                <td>$90,807</td>
+                <td>-0.000</td>
+                <td>26.4%</td>
+                <td>0.03s</td>
+                <td><span class="badge badge-danger">Baseline</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footnote">
+          * Statistical verification: XGBoost vs HistGB test RMSE difference is <strong>-$2,044 USD</strong> with 95% paired bootstrap CI [-2,687, -1,411] (p &lt; 0.001).
+        </div>
+      </div>
+    </section>
+
+    <!-- Six Research Objectives Section -->
+    <section id="objectives" class="section-container">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <div class="section-tag">ACADEMIC RIGOR</div>
+          <h3 class="section-title">Six Measurable Research Objectives</h3>
+          <p class="section-desc">Each objective addresses a core machine learning question and was validated on the California Housing dataset.</p>
+        </div>
+      </div>
+
+      <div class="objectives-grid">
+        <!-- Obj 1 -->
+        <div class="card obj-card">
+          <div class="obj-badge">Obj 1</div>
+          <h4 class="obj-title">Data Audit & KNN Imputation</h4>
+          <p class="obj-text">
+            Audited 20,640 records. Exactly 207 rows missing <code>total_bedrooms</code> (1.0%). Compared Simple Median Imputer against KNN Imputer (k=5) inside cross-validation folds. KNN preserved multivariate covariance between rooms and bedrooms without test leakage.
+          </p>
+          <div class="obj-stat">
+            <span class="stat-num">207</span>
+            <span class="stat-desc">Imputed records preserved</span>
+          </div>
+        </div>
+
+        <!-- Obj 2 -->
+        <div class="card obj-card">
+          <div class="obj-badge">Obj 2</div>
+          <h4 class="obj-title">Income Non-Linearity & Price Caps</h4>
+          <p class="obj-text">
+            Median income is the single strongest predictor (r = 0.69). Target is right-censored at $500,001 (4.3% of test samples), which produces 16% of the overall squared error. Investigated polynomial and non-linear tree splits.
+          </p>
+          <div class="obj-stat">
+            <span class="stat-num">r = 0.69</span>
+            <span class="stat-desc">Income-Price correlation</span>
+          </div>
+        </div>
+
+        <!-- Obj 3 -->
+        <div class="card obj-card">
+          <div class="obj-badge">Obj 3</div>
+          <h4 class="obj-title">Geography & Spatial Autocorrelation</h4>
+          <p class="obj-text">
+            Spatial autocorrelation of house values is severe (Moran's I = 0.79). Engineered public geographic hub distance features to 5 key California cities (SF, LA, SD, SJ, Sacramento) plus coastal proximity, reducing spatial residuals.
+          </p>
+          <div class="obj-stat">
+            <span class="stat-num">I = 0.79</span>
+            <span class="stat-desc">Moran's spatial clustering index</span>
+          </div>
+        </div>
+
+        <!-- Obj 4 -->
+        <div class="card obj-card">
+          <div class="obj-badge">Obj 4</div>
+          <h4 class="obj-title">Ratio Feature Engineering</h4>
+          <p class="obj-text">
+            Raw room and bedroom aggregates scale with population size. Engineered compound ratios: <code>rooms_per_household</code>, <code>bedrooms_ratio</code> (bedrooms/rooms), and <code>population_per_household</code>. Features ranked top 5 in permutation importance.
+          </p>
+          <div class="obj-stat">
+            <span class="stat-num">+$1,500</span>
+            <span class="stat-desc">RMSE improvement from ratios</span>
+          </div>
+        </div>
+
+        <!-- Obj 5 -->
+        <div class="card obj-card">
+          <div class="obj-badge">Obj 5</div>
+          <h4 class="obj-title">Multi-Model Hyperparameter Tuning</h4>
+          <p class="obj-text">
+            Evaluated 7 distinct models from simple baselines to tree ensembles. Tuned with 3-fold randomized search, validated with 5-fold CV. XGBoost with histogram binning outperformed standard Random Forest and HistGB across all metrics.
+          </p>
+          <div class="obj-stat">
+            <span class="stat-num">7 Models</span>
+            <span class="stat-desc">Systematically tuned & compared</span>
+          </div>
+        </div>
+
+        <!-- Obj 6 -->
+        <div class="card obj-card">
+          <div class="obj-badge">Obj 6</div>
+          <h4 class="obj-title">Error Diagnostics & SHAP Explainability</h4>
+          <p class="obj-text">
+            Residual analysis revealed heteroskedasticity (larger variance on expensive houses). Computed TreeSHAP values for global and local interpretability, proving income and distance to San Francisco are dominant valuation drivers.
+          </p>
+          <div class="obj-stat">
+            <span class="stat-num">TreeSHAP</span>
+            <span class="stat-desc">Exact local feature attribution</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Publication Figures Gallery Section -->
+    <section id="gallery" class="section-container">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <div class="section-tag">VISUAL EVIDENCE</div>
+          <h3 class="section-title">Publication-Quality Figure Gallery</h3>
+          <p class="section-desc">20 high-resolution charts generated directly from the reproducible analysis pipeline.</p>
+        </div>
+      </div>
+
+      <div class="gallery-grid" id="galleryGrid">
+        <!-- Figures injected dynamically via app.js -->
+      </div>
+    </section>
+
+    <!-- Artifacts & Viva Downloads Section -->
+    <section id="downloads" class="section-container">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <div class="section-tag">DELIVERABLES & DOCUMENTATION</div>
+          <h3 class="section-title">Project Artifacts & Academic Documents</h3>
+          <p class="section-desc">Access generated reports, preview PDFs, serialized model card, and test prediction exports.</p>
+        </div>
+      </div>
+
+      <div class="downloads-grid">
+        <div class="card download-card">
+          <div class="dl-icon">📄</div>
+          <div class="dl-details">
+            <h4>Formal CA2 Project Report (Word)</h4>
+            <p>Complete academic report with cover, certificate, methodology, results, and viva defense points.</p>
+            <span class="dl-meta">DOCX • 3.8 MB • Section 1 to 6</span>
+          </div>
+          <a href="/report/CA2_Predictive_Analysis_Report.docx" class="btn btn-secondary" download>Download DOCX</a>
+        </div>
+
+        <div class="card download-card">
+          <div class="dl-icon">📕</div>
+          <div class="dl-details">
+            <h4>Report PDF Preview</h4>
+            <p>Formatted PDF document preview containing all embedded figures and tables.</p>
+            <span class="dl-meta">PDF • 3.7 MB • Visual Edition</span>
+          </div>
+          <a href="/report/CA2_Predictive_Analysis_Report_preview.pdf" target="_blank" class="btn btn-secondary">Open PDF</a>
+        </div>
+
+        <div class="card download-card">
+          <div class="dl-icon">📦</div>
+          <div class="dl-details">
+            <h4>Production Model Card</h4>
+            <p>JSON metadata document specifying pipeline steps, hyperparameters, environment, and performance.</p>
+            <span class="dl-meta">JSON • Best XGBoost Pipeline</span>
+          </div>
+          <a href="/api/metrics" target="_blank" class="btn btn-secondary">View Model Card</a>
+        </div>
+
+        <div class="card download-card">
+          <div class="dl-icon">📓</div>
+          <div class="dl-details">
+            <h4>Jupyter Notebook</h4>
+            <p>Full 61-cell interactive notebook with executed code, Markdown commentary, and 20 figures.</p>
+            <span class="dl-meta">IPYNB • 220 KB • All Objectives</span>
+          </div>
+          <a href="http://127.0.0.1:8888/tree/notebooks/California_Housing_Predictive_Analysis.ipynb" target="_blank" class="btn btn-primary">Open in Jupyter</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Lightbox Modal for Figures -->
+  <div id="figureModal" class="modal-backdrop hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 id="modalTitle">Figure Viewer</h4>
+        <button id="modalClose" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <img id="modalImg" src="" alt="Publication Figure">
+      </div>
+      <div class="modal-footer">
+        <p id="modalDesc">Detailed scientific description.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>© 2026 California Housing Predictive Analysis CA2. Built with Python 3.12, scikit-learn & XGBoost.</p>
+      <p class="footer-sub">Reproducible ML Pipeline • Income Stratified 80/20 Split • Seed 42</p>
+    </div>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

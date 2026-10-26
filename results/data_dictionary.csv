@@ -1,0 +1,11 @@
+variable,type,unit,description
+longitude,float,degrees,Block-group longitude (more negative = further west)
+latitude,float,degrees,Block-group latitude (higher = further north)
+housing_median_age,float,years,Median age of houses in the block group (capped at 52)
+total_rooms,float,count,Total rooms in all houses of the block group
+total_bedrooms,float,count,Total bedrooms in the block group (207 missing)
+population,float,persons,Block-group population
+households,float,count,Number of households
+median_income,float,"10,000 USD",Median household income (capped at 15.0001)
+median_house_value,float,USD,"TARGET - median house value (capped at 500,001)"
+ocean_proximity,categorical,-,"<1H OCEAN, INLAND, NEAR OCEAN, NEAR BAY, ISLAND"
